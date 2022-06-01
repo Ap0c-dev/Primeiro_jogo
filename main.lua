@@ -1,7 +1,7 @@
 local fisica = require("physics")--importa a biblioteca
 fisica.start()                   --inicia a fisica
 fisica.setDrawMode("hybrid")     --difine como será a visualização dos elementos físico
-fisica.setGravity(0, 9.8);
+fisica.setGravity(0, 10.8);
 display.setStatusBar(display.HiddenStatusBar);
 
 _w = display.contentWidth
@@ -38,38 +38,24 @@ pedra.y = 400
 pedra.x = 122
 
 
-local tabelaStars = {
-    {x=250, y=10, image="Other/starGold.png", nome = "Star"},
-    {x=270, y=10, image="Other/starGold.png", nome = "Star"},
-    {x=290, y=10, image="Other/starGold.png", nome = "Star"}
-}
+pontos = 0;
+local pontos = display.newText("000", 10, 10, 240, 300, native.systemFontBold, 23)
+pontos.text = "000"
+pontos:setFillColor( 0, 0, 0);
 
 
-local listaStars = {}
-for i = 1, #tabelaStars do
-    local peca = display.newImageRect("images/"..tabelaStars[i].image,30 ,30);
-    peca.x = tabelaStars[i].x
-    peca.y = tabelaStars[i].y
-    peca.nome = tabelaStars[i].nome
-   -- peca.collision = colideAlien
-    table.insert(listaStars, peca);  
-
-end
-
--- listaStars[1].rotation = 0
-
--- local star1 = display.newImageRect("images/Other/starGold.png", 30,30)
--- star1.y = 10
--- star1.x = 250
--- star1.nome = "Star"
--- local star2 = display.newImageRect("images/Other/starGold.png", 30,30)
--- star2.y = 10
--- star2.x = 270
--- star2.nome = "Star"
--- local star3 = display.newImageRect("images/Other/starGold.png", 30,30)
--- star3.y = 10
--- star3.x = 290
--- star3.nome = "Star"
+local star1 = display.newImageRect("images/Other/starGold.png", 30,30)
+star1.y = 10
+star1.x = 250
+star1.nome = "Star"
+local star2 = display.newImageRect("images/Other/starGold.png", 30,30)
+star2.y = 10
+star2.x = 270
+star2.nome = "Star"
+local star3 = display.newImageRect("images/Other/starGold.png", 30,30)
+star3.y = 10
+star3.x = 290
+star3.nome = "Star"
 
 
 local paredeEsq = display.newRect(-10, 0, 10, _h);
@@ -87,9 +73,11 @@ local listaAliens = {}
 
 --Funções
 vidaMetal = 0
-points  = 0;
-toque = 0
-vidaAlien = 6
+vidaAlien = 0
+vidaChao = 0;
+colide = 0
+contador = -1;
+
 local function colideAlien(self, ev)
        
     if ev.other.nome == "Madeira" then 
@@ -103,32 +91,47 @@ local function colideAlien(self, ev)
             
         end
     end
+
     if ev.other.nome == "Chao" then
-      
+        vidaChao = vidaChao + 1;     
         ev.target:removeSelf()
-        print(table.maxn(listaStars));
-        table.remove(listaStars, peca)  
-        display.remove(listaStars, peca) 
+        if vidaChao == 1 then
+            display.remove(star1)
+        end
+
+        if vidaChao == 2 then
+            display.remove(star2)
+        end
+
+        if vidaChao == 3 then
+            display.remove(star3)
+            timer.cancel(tictac)
+            display.remove(pedra);
+            display.remove(chao);
+            local gameOver display.newImageRect("images/gameOver.png", _w, _h)
+        end        
     end 
     
-    if ev.other.nome == "Pedra" then
-        vidaAlien = vidaAlien -1    
-        if vidaAlien == 1 then
-            ev.target:removeSelf()
-            table.remove(listaAliens, alien);  
-            print("Remove ", table.maxn(listaAliens));
-            -- print("eu"..points)
+    if (ev.target.nome == "Alien" and ev.other.nome == "Pedra") then
+        vidaAlien = vidaAlien + 1;
+        if (vidaAlien == 6) then
+            contador = contador + 10;
+            ev.target:removeSelf();
+            pontos:removeSelf();
+            pontos = contador + 1;
+            pontos = display.newText(pontos, 10, 10, native.systemFontBold, 23)
+            pontos:setFillColor( 0, 0, 0);
+            vidaAlien = 0;
         end
-    end
-
-    
+    end 
 end
+
 
 local function criaAlien(ev)
     local alien = display.newImageRect("images/Aliens/alienYellow_round.png",50,50)
     alien.x = math.random(_w )
     alien.y = math.random(20)
-    fisica.addBody(alien,"dynamic", {density = 1, bounce = 0.7, radius=25});
+    fisica.addBody(alien,"dynamic", {density = 2, bounce = 0.6, radius=25});
     alien.nome = "Alien"
     alien.collision = colideAlien
     alien:addEventListener("collision")
@@ -136,37 +139,6 @@ local function criaAlien(ev)
     print("Insert ", table.maxn(listaAliens));
 
 end
-
-
- local scoreText = display.newText( "0000", display.contentCenterX, 60, native.systemFont, 48 )
- 
--- local function lerp( v0, v1 )
-    
---     return v0 +  v1
--- end
- 
--- local function incrementScore( target, amount, duration, startValue )
- 
---     local newScore = startValue or 0
---     local passes = (duration/1000) * display.fps
---     local increment = lerp( 1, 1 )
- 
---     local count = 0
---     local function updateText()
---         if ( count <= passes ) then
---             newScore = newScore + increment
---             target.text = string.format( "%04d", newScore )
---             count = count + 1
---         else
---             Runtime:removeEventListener( "enterFrame", updateText )
---             target.text = string.format( "%04d", amount + (startValue or 0) )
---         end
---     end
- 
---     Runtime:addEventListener( "enterFrame", updateText )
--- end
-
-
 
 function pedra:touch( event )
     if ( event.phase == "began" ) then        
@@ -185,12 +157,15 @@ function pedra:touch( event )
     return true
 end
 
-
--- incrementScore( scoreText, 1000, 4000 )
+local function cancelaJogo()
+    if( tictac ~= nill )then
+        timer.cancel(tictac);
+    end
+end
 
 --Eventos
 
 Runtime:addEventListener( "touch", pedra )
 
-tictac = timer.performWithDelay(1000, criaAlien, 2)
-
+tictac = timer.performWithDelay(4000, criaAlien, 10)
+ 
