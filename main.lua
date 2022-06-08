@@ -71,11 +71,8 @@ chao.nome = "Chao"
 
 local listaAliens = {}
 
---Funções
 vidaMetal = 0
-vidaAlien = 0
 vidaChao = 0;
-colide = 0
 contador = -1;
 
 local function colideAlien(self, ev)
@@ -91,7 +88,7 @@ local function colideAlien(self, ev)
             
         end
     end
-
+--Eliminando as chances do jogador.
     if ev.other.nome == "Chao" then
         vidaChao = vidaChao + 1;     
         ev.target:removeSelf()
@@ -111,17 +108,16 @@ local function colideAlien(self, ev)
             local gameOver display.newImageRect("images/gameOver.png", _w, _h)
         end        
     end 
-    
+--Contando os pontos e removendo Aliens.    
     if (ev.target.nome == "Alien" and ev.other.nome == "Pedra") then
-        vidaAlien = vidaAlien + 1;
-        if (vidaAlien == 6) then
+        ev.target.vida = ev.target.vida + 1
+        if (ev.target.vida == 6) then
             contador = contador + 10;
             ev.target:removeSelf();
             pontos:removeSelf();
             pontos = contador + 1;
             pontos = display.newText(pontos, 10, 10, native.systemFontBold, 23)
             pontos:setFillColor( 0, 0, 0);
-            vidaAlien = 0;
         end
     end 
 end
@@ -131,13 +127,11 @@ local function criaAlien(ev)
     local alien = display.newImageRect("images/Aliens/alienYellow_round.png",50,50)
     alien.x = math.random(_w )
     alien.y = math.random(20)
-    fisica.addBody(alien,"dynamic", {density = 2, bounce = 0.6, radius=25});
+    fisica.addBody(alien,"dynamic", {density = 2, bounce = 0.9, radius=25});
     alien.nome = "Alien"
+    alien.vida = 0                             
     alien.collision = colideAlien
     alien:addEventListener("collision")
-    table.insert(listaAliens, alien);  
-    print("Insert ", table.maxn(listaAliens));
-
 end
 
 function pedra:touch( event )
